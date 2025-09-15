@@ -1,22 +1,32 @@
-# ASP.NET Noble Ghostscript Docker Image
+# ASP.NET Noble Ghostscript Docker Images
 
-This repository contains a Docker image based on ASP.NET 10.0 Noble with Ghostscript and zbar-tools installed.
+This repository contains Docker images based on ASP.NET 10.0 Noble with Ghostscript tools installed.
 
-## Docker Image
+## Docker Images
 
-The Dockerfile creates an image with:
+The repository provides two Docker images:
+
+### aspnet-noble-ghostscript (Root)
 - Base: `mcr.microsoft.com/dotnet/aspnet:10.0-noble`
 - Ghostscript for PDF processing
 - zbar-tools for barcode/QR code processing
 - Pre-configured GhostScript settings
 
+### aspnet-noble-ghostscript-xps (XPS)
+- Base: `mcr.microsoft.com/dotnet/aspnet:10.0-noble`
+- Ghostscript 9.53.3 (latest version)
+- gpcl6 for PCL processing
+- gxps for XPS processing
+- Full GhostPDL suite
+
 ## GitHub Actions CI/CD
 
-### Nightly Builds
+### Automated Builds
 
 The repository includes a GitHub Actions workflow that:
 - Runs nightly at 2 AM UTC
-- Builds the Docker image
+- Triggers on pushes to the main branch
+- Builds both Docker images in parallel using matrix strategy
 - Pushes to Azure Container Registry
 - Supports manual triggering via `workflow_dispatch`
 
@@ -43,28 +53,39 @@ To use the GitHub Actions workflow, you need to configure the following secrets 
 ### Workflow Features
 
 - **Scheduled builds**: Runs automatically every night at 2 AM UTC
+- **Push triggers**: Runs on every push to the main branch
+- **Matrix strategy**: Builds both images in parallel for faster execution
 - **Manual triggers**: Can be triggered manually from the Actions tab
 - **Simple tagging**: Uses only the `latest` tag for all builds
-- **Build caching**: Uses GitHub Actions cache for faster builds
-- **Buildx support**: Uses Docker Buildx for advanced build features
+- **Docker CLI**: Uses standard `docker build` and `docker push` commands
 
 ### Image Tags
 
-The workflow creates a single tag:
-- `latest` - All builds are tagged as latest, overwriting the previous version
+The workflow creates a single tag for each image:
+- `aspnet-noble-ghostscript:latest` - Standard Ghostscript image
+- `aspnet-noble-ghostscript-xps:latest` - Full GhostPDL suite image
 
 ## Usage
 
-Once the image is built and pushed to your Azure Container Registry, you can pull it using:
+Once the images are built and pushed to your Azure Container Registry, you can pull them using:
 
 ```bash
+# Standard Ghostscript image
 docker pull <your-registry>.azurecr.io/aspnet-noble-ghostscript:latest
+
+# Full GhostPDL suite image (includes XPS and PCL support)
+docker pull <your-registry>.azurecr.io/aspnet-noble-ghostscript-xps:latest
 ```
 
 ## Environment Variables
 
-The image includes pre-configured environment variables for GhostScript:
+The standard image (`aspnet-noble-ghostscript`) includes pre-configured environment variables for GhostScript:
 
 - `GhostScriptSettings__Executable="/usr/bin/gs"`
 - `GhostScriptSettings__Parameter="-sDEVICE=pdfwrite -o \"{1}\" -dCompatibilityLevel=\"1.4\" -dPDFSETTINGS=\"/screen\" -dNOPAUSE -dQUIET -dBATCH \"{0}\""`
 - `GhostScriptSettings__WorkDir="/tmp"`
+
+The XPS image (`aspnet-noble-ghostscript-xps`) includes the full GhostPDL suite with:
+- Ghostscript 9.53.3 at `/usr/local/bin/gs`
+- gpcl6 for PCL processing at `/usr/local/bin/gpcl6`
+- gxps for XPS processing at `/usr/local/bin/gxps`

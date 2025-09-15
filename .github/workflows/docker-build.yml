@@ -4,15 +4,24 @@ on:
   schedule:
     # Run every night at 2 AM UTC
     - cron: '0 2 * * *'
+  push:
+    branches:
+      - main
   workflow_dispatch: # Allow manual triggering
 
 env:
   REGISTRY_NAME: ${{ secrets.ACR_LOGIN_SERVER }}
-  IMAGE_NAME: aspnet-noble-ghostscript
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - image_name: aspnet-noble-ghostscript
+            dockerfile_path: .
+          - image_name: aspnet-noble-ghostscript-xps
+            dockerfile_path: ./XPS
     
     steps:
     - name: Checkout code
@@ -26,7 +35,7 @@ jobs:
         password: ${{ secrets.ACR_PASSWORD }}
         
     - name: Build Docker image
-      run: docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest .
+      run: docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.image_name }}:latest ${{ matrix.dockerfile_path }}
         
     - name: Push Docker image
-      run: docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ env.IMAGE_NAME }}:latest
+      run: docker push ${{ secrets.ACR_LOGIN_SERVER }}/${{ matrix.image_name }}:latest
