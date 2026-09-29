@@ -38,6 +38,6 @@ RUN apt-get update \
 
 COPY --from=ghostpdl /usr/local/ /usr/local/
 
-RUN gs --version \
-    && gpcl6 -h \
-    && gxps -h
+RUN test "$(gs --version)" = "10.08.0" \
+    && gpcl6 -h 2>&1 | grep -F "Version: 10.08.0" \
+    && gxps -h 2>&1 | grep -F "Version: 10.08.0"
