@@ -14,7 +14,7 @@ The repository provides two Docker images:
 
 ### aspnet-noble-ghostscript-xps (XPS)
 - Base: `mcr.microsoft.com/dotnet/aspnet:10.0-noble`
-- Ghostscript 9.53.3 (latest version)
+- Ghostscript 10.08.0
 - gpcl6 for PCL processing
 - gxps for XPS processing
 - Full GhostPDL suite
@@ -86,6 +86,6 @@ The standard image (`aspnet-noble-ghostscript`) includes pre-configured environm
 - `GhostScriptSettings__WorkDir="/tmp"`
 
 The XPS image (`aspnet-noble-ghostscript-xps`) includes the full GhostPDL suite with:
-- Ghostscript 9.53.3 at `/usr/local/bin/gs`
+- Ghostscript 10.08.0 at `/usr/local/bin/gs`
 - gpcl6 for PCL processing at `/usr/local/bin/gpcl6`
 - gxps for XPS processing at `/usr/local/bin/gxps`

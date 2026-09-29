@@ -1,30 +1,43 @@
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble AS ghostpdl
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        file \
+        g++ \
+        gcc \
+        make \
+        wget \
+        xz-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /src
+RUN wget -q -O ghostpdl.tar.xz https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs10080/ghostpdl-10.08.0.tar.xz \
+    && echo "94943e3c4adb7115d132b3c28b913672f2e62e6a9d802f7e754e716b1634174a  ghostpdl.tar.xz" | sha256sum -c \
+    && tar -xf ghostpdl.tar.xz \
+    && cd ghostpdl-10.08.0 \
+    && ./configure \
+        --prefix=/usr/local \
+        --disable-cups \
+        --disable-dbus \
+        --disable-fontconfig \
+        --disable-gtk \
+        --without-libidn \
+        --without-libpaper \
+        --without-tesseract \
+        --without-x \
+    && make -j"$(nproc)" \
+    && make install \
+    && ln -s gs /usr/local/bin/ghostscript
+
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble
 
-RUN apt-get update && \
-    apt-get -y --no-install-recommends install wget unzip git gcc build-essential
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
 
-#Install ghostscript, gpcl6, gxps
-RUN wget https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs9533/ghostscript-9.53.3-linux-x86_64.tgz && \
-    tar zxf ghostscript-9.53.3-linux-x86_64.tgz && \
-    rm ghostscript-9.53.3-linux-x86_64.tgz && \
-    cd ghostscript-9.53.3-linux-x86_64 && \
-    mv ./gs-9533-linux-x86_64 /usr/local/bin/ghostscript && \
-    cp /usr/local/bin/ghostscript /usr/local/bin/gs && \
-    cd .. && \
-    rm -R ghostscript-9.53.3-linux-x86_64/ && \
-    wget https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs9533/ghostpcl-9.53.3-linux-x86_64.tgz && \
-    tar zxf ghostpcl-9.53.3-linux-x86_64.tgz && \
-    rm ghostpcl-9.53.3-linux-x86_64.tgz && \
-    cd ghostpcl-9.53.3-linux-x86_64 && \
-    mv ./gpcl6-9533-linux-x86_64 /usr/local/bin/gpcl6 && \
-    mv ./* /usr/local/bin/ && \
-    cd .. && \
-    rm -R ghostpcl-9.53.3-linux-x86_64/ && \
-    wget https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs9533/ghostxps-9.53.3-linux-x86_64.tgz && \
-    tar zxf ghostxps-9.53.3-linux-x86_64.tgz && \
-    rm ghostxps-9.53.3-linux-x86_64.tgz && \
-    cd ghostxps-9.53.3-linux-x86_64 && \
-    mv ./gxps-9533-linux-x86_64 /usr/local/bin/gxps && \
-    mv ./* /usr/local/bin/ && \
-    cd .. && \
-    rm -R ghostxps-9.53.3-linux-x86_64/
+COPY --from=ghostpdl /usr/local/ /usr/local/
+
+RUN gs --version \
+    && gpcl6 -h \
+    && gxps -h
