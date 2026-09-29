@@ -1,5 +1,8 @@
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble
-RUN apt-get update && apt-get install -y ghostscript zbar-tools
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends ghostscript zbar-tools \
+    && rm -rf /var/lib/apt/lists/*
 
 
 ENV GhostScriptSettings__Executable="/usr/bin/gs"
